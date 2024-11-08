@@ -1,0 +1,45 @@
+version: '3'
+services:
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: php-SpacPSMS
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - mysql
+    entrypoint: /bin/bash -c "docker-php-ext-install mysqli && a2enmod rewrite && /usr/sbin/apache2ctl -D FOREGROUND"
+    networks:
+      - space-network
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: phpmyAdmin-SpacPSMS
+    ports:
+      - "81:80"
+    environment:
+      - PMA_HOST=mysql
+      - PMA_PORT=3306
+    depends_on:
+      - mysql
+    networks:
+      - space-network
+  mysql:
+    image: mysql:latest
+    container_name: mysql-SpacPSMS
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: mysql
+      MYSQL_USER: mysql
+      MYSQL_PASSWORD: mysql
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./sql-dumps:/docker-entrypoint-initdb.d
+    networks:
+      - space-network
+networks:
+  space-network:
+    driver: bridge
